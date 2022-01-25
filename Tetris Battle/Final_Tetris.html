@@ -1,0 +1,154 @@
+<!--
+	Author: Lawrence Shieh, Maggie Li
+	Date: 5/28/2019
+	Version: 2.4
+	Assignment: Final Computer Project (Tetris)
+		This is a Tetris game that allows you to play a single-player or multi-player game.
+		Things to notice in the project:
+			1. There are two modes (single-player and multi-player).
+				(found in Final_Tetris.html)
+			2. The player's name is collected in order to display later next to their scores.
+				(found in UserNameMenu.js)
+			3. The first letter of the name inputed in single player mode will be 
+				capitalized, and the rest of the letters will be lower cased.
+				(found in UserNameMenu.js)
+			4. There are rankings saved in local storage for high scores 
+				set in the single-player mode. There is a high score page where the
+				rankings are displayed in a "textarea".
+				(found in library.js and Menu.js)
+			5. Trash (lines of black blocks) could be sent and cleared in the multi-player mode. 
+				(found in PlayField.js)
+			6. There is a button that clears all high scores and ranks in local storage. However,
+				people need a password in order to execute the command. In other words,
+				unless people have the password, they can't clear the record.
+				(found in Menu.js)
+			7. There is a "hold" function in multi-player player mode. The "hold" function
+				is not available in single player mode. The "hold" function allows the player to 
+				hold a block and switch it out for another block.
+				(found in Holder.js)
+			8. After a multi-player game, the trophy on the game over page will have the
+				winner's name. Additionally, a crown will appear above the winner's name.
+				(found in library.js)
+			9. After a single-player game, the trophy on the final page will have the
+				current ranking of the player (comparing to the high score page).
+				(found in library.js)
+			10. In the multi-player mode, you can hold on to a key and move your
+				block without being affected by your opponent's movement. Notice that
+				there is a temporary pause after you first hold onto the key, and the block
+				will keep moving afterwards.
+				(found in library.js)
+			11. There is background music when the game is playing. There are sound effects when
+				bombs are ignited, and when two or more lines are cleared at the same time.
+				(found in Final_Tetris.html)
+			12. The menu page is a canvas wrapper and the buttons have shading in order
+				to make them look more 3D.
+				(found in Menu.js)
+			13. There is a "controls" page where the player can learn the controls of the two
+				different game modes.
+				(found in Menu.js)
+			14. Brief explanations about the game mode will appear when the player hovers their
+				mouse over the button.
+				(found in Menu.js)
+			15. In the multi-player mode, the game will end once one of the players are
+				"knocked out" or the timer (3 minutes) runs out. Whoever gets knocked
+				out will automatically lose the game. If no one gets knocked out,
+				whoever has the higher score wins.
+				(found in PlayField.js and TimeArea.js)
+			16. There is a "play again" option at the final page when the game is over.
+				(found in Menu.js)
+			17. When there are same names on the ranking list, the system will only
+				record the higher score.
+				(found in library.js)
+-->
+<html>
+	<head>
+		<script src="JQuery.js"></script>
+		<script src="Sound.js"></script>
+		<script src="GameOverWord.js"></script>
+		<script src="Wrapper.js"></script>
+		<script src="PlayField.js"></script>
+		<script src="Box.js"></script>
+		<script src="Blocks.js"></script>
+		<script src="T_Block.js"></script>
+		<script src="I_Block.js"></script>
+		<script src="O_Block.js"></script>
+		<script src="J_Block.js"></script>
+		<script src="L_Block.js"></script>
+		<script src="S_Block.js"></script>
+		<script src="Z_Block.js"></script>
+		<script src="Holder.js"></script>
+		<script src="BlocksCanvas.js"></script>
+		<script src="NextBlockHolder.js"></script>
+		<script src="PointsArea.js"></script>
+		<script src="Bomb.js"></script>
+		<script src="CountDown.js"></script>
+		<script src="library.js"></script>
+		<script src="Menu.js"></script>
+		<script src="decorationCanvas.js"></script>
+		<script src="TimeArea.js"></script>
+		<script src="UserNameMenu.js"></script>
+		<link href="https://fonts.googleapis.com/css?family=Modak" rel="stylesheet">
+		<script>
+			//Global Variables--------------------------------------------
+			var wrapper;var wrapper1;var wrapper2;
+			var canvas1Holder;var canvas1Next;
+			var onePlayer=false;var twoPlayer=false;
+			var moveKeyArray=[];
+			var leftTime1=0;var rightTime1=0;var downTime1=0;
+			var leftTime2=0;var rightTime2=0;var downTime2=0;
+			var countDownPic;var backgroundMusic;var endGame=true;
+			var moveBlockTimer=setInterval(function(){moveBlock();},50);
+			var gmenu;var userNameMenu;var highScores=[];
+			var loser;var name;var name1;var name2;var tempRank=1;
+			//Main Program-------------------------------------------------
+			$(document).ready(function(){
+				gmenu = new Menu();
+				if(localStorage.highScores){
+					highScores=JSON.parse(localStorage.highScores);
+					updateHighScoreMenu();
+				}
+			});	
+			/**runGame() display the playfield and run the actual game.
+				input: number of players
+				output: n/a
+				other effects: game starts
+			*/
+			function runGame(players){
+				gmenu.canvaswrapper[0].style.display="none";
+				if(players==2){
+					twoPlayer=true;
+					onePlayer=false;
+				}else if(players==1){
+					twoPlayer=false;
+					onePlayer=true;
+				}
+				var countDownSound=new Sound("countDown.mp3",0.8);
+				countDownSound.loadSound();
+				countDownSound.playSound(0);
+				var countDown=new CountDown();
+				countDown.doCountDown();
+				
+				backgroundMusic=new Sound("backgroundMusic.mp3",0.3);
+				backgroundMusic.loadSound();
+				backgroundMusic.playSound(3400);
+				setTimeout(function(){
+					endGame=false;
+					if(onePlayer){
+						wrapper=new Wrapper([25,40],0);
+						$("body").append(wrapper.wrapper);
+					}else{
+						wrapper1=new Wrapper([25,40],1);
+						$("body").append(wrapper1.wrapper);
+						
+						wrapper2=new Wrapper([905,40],2);
+						$("body").append(wrapper2.wrapper);
+					}
+				},3000);
+			}
+		</script>
+	</head>
+	<body onkeydown="keyDown(event)" onkeyup="keyUp(event)">
+		<audio id="backgroundMusic" src="BackgroundMusic.mp3" preload="auto" loop="loop"></audio>
+		<div id = "wrapper" style="width:700px;"></div>
+	</body>
+</html>
